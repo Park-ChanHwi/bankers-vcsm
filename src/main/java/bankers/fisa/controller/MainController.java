@@ -1,7 +1,10 @@
 package bankers.fisa.controller;
 
 import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONObject;
@@ -19,20 +22,35 @@ public class MainController {
 	private static final String ACCOUNT = "administrator@vsphere.local:VMware1!";
 	private static final String baseURL = "https://192.168.0.150";
 	
+	private static String token = new String();
+	private static Date tokenDate = null;
+	
 	private static String getToken() {
+		
+		if(tokenDate == null) {
+			tokenDate = new Date();
+		}else {
+			Date current = new Date();
+			if((tokenDate.getTime() / 1000) < (current.getTime() / 1000) + (3600)) {
+				return token;
+			}
+		}
+			
+		
 		ArrayList<String> header = new ArrayList<String>();
-		String result = new String();
 		
 	    byte[] authEncBytes = Base64.encodeBase64(ACCOUNT.getBytes(), true);
         String authStringEnc = new String(authEncBytes);
         authStringEnc = authStringEnc.substring(0, authStringEnc.length() - 2);
         header.add("Authorization:Basic " + authStringEnc);
 		try {
-			result = HttpsConnecter.connect(baseURL + "/api/session", "POST", header);
+			token = HttpsConnecter.connect(baseURL + "/api/session", "POST", header);
+			token = token.substring(1, token.length() - 1);
 		}catch (Exception e) {
 
 		}
-		return result.substring(1, result.length() - 1);
+		System.out.println(token);
+		return token;
 	}
 	
 	@PostMapping("getvmaddress")
@@ -43,8 +61,9 @@ public class MainController {
         String result = new String();
         try {
         	result = HttpsConnecter.connect(baseURL + "/api/vcenter/vm/vm-" + vmId + "/guest/networking/interfaces", "GET", header);
-            result = result.split(":")[9].split(",")[0];
-            return result.substring(1, result.length()-1);
+        	result = result.split(":")[9].split(",")[0];
+        	result = result.substring(1, result.length()-1);
+            return result;
         }catch (Exception e) {
         	return "preparing";
         }
