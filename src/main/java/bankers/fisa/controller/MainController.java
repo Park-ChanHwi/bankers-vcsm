@@ -21,6 +21,7 @@ public class MainController {
 
 	private static final String ACCOUNT = "administrator@vsphere.local:VMware1!";
 	private static final String baseURL = "https://192.168.0.150";
+	private static final int tokenTime = 1800;
 	
 	private static String token = new String();
 	private static Date tokenDate = null;
@@ -31,12 +32,15 @@ public class MainController {
 			tokenDate = new Date();
 		}else {
 			Date current = new Date();
-			if((tokenDate.getTime() / 1000) < (current.getTime() / 1000) + (3600)) {
+			
+			if((current.getTime() / 1000) < (tokenDate.getTime() / 1000) + (tokenTime) ) {
+				System.out.println("토큰 반환. " + ((tokenDate.getTime() / 1000) + (tokenTime)) + " / " + (current.getTime() / 1000));
 				return token;
 			}
 		}
 			
-		
+		System.out.println("새로운 토큰 발급");
+		tokenDate = new Date();
 		ArrayList<String> header = new ArrayList<String>();
 		
 	    byte[] authEncBytes = Base64.encodeBase64(ACCOUNT.getBytes(), true);
